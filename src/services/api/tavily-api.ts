@@ -1,5 +1,4 @@
 import { BaseAPIService } from './base-api';
-import { TAVILY_API_KEY, TAVILY_SEARCH_ENDPOINT } from '../../config/api-config';
 
 export interface TavilySearchResult {
   title: string;
@@ -26,19 +25,6 @@ export const DEFAULT_SEARCH_OPTIONS: TavilySearchOptions = {
 } as const;
 
 export class TavilyAPI extends BaseAPIService {
-  private apiKey: string;
-  private endpoint: string;
-
-  constructor(apiKey = TAVILY_API_KEY, endpoint = TAVILY_SEARCH_ENDPOINT) {
-    super();
-    this.apiKey = apiKey;
-    this.endpoint = endpoint;
-
-    if (!this.apiKey) {
-      console.warn('Tavily API key not found. Web search will be disabled.');
-    }
-  }
-
   /**
    * Perform a web search using the Tavily API
    */
@@ -46,16 +32,14 @@ export class TavilyAPI extends BaseAPIService {
     query: string,
     options: TavilySearchOptions = DEFAULT_SEARCH_OPTIONS
   ): Promise<TavilySearchResult[]> {
-    if (!this.apiKey) {
-      return [];
-    }
-
     try {
       const data = await this.fetchWithErrorHandling<{ results: TavilySearchResult[] }>(
-        this.endpoint,
+        '/api/search',
         {
           method: 'POST',
-          headers: this.getAuthHeaders(this.apiKey),
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             query,
             ...options

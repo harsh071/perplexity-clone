@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message as MessageType, Source } from '../../types/message';
-import { openai, DEFAULT_MODEL } from '../../config/api-config';
+import { DEFAULT_MODEL } from '../../config/api-config';
 
 interface MessageProps {
   content: string;
@@ -102,22 +102,34 @@ export function Message({
         }
 
         // Step 1: Improve the prompt using LLM
-        const improvePromptResponse = await openai.chat.completions.create({
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert at improving questions and prompts to get better, more accurate answers. Your goal is to make questions more specific, detailed, and focused while maintaining the original intent. Add relevant context and clarify any ambiguities.'
-            },
-            {
-              role: 'user',
-              content: `Please improve this question to get a better answer. Make it more specific and detailed while maintaining the original intent: "${originalQuestion}"`
-            }
-          ],
-          model: DEFAULT_MODEL,
-          temperature: 0.7,
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert at improving questions and prompts to get better, more accurate answers. Your goal is to make questions more specific, detailed, and focused while maintaining the original intent. Add relevant context and clarify any ambiguities.'
+              },
+              {
+                role: 'user',
+                content: `Please improve this question to get a better answer. Make it more specific and detailed while maintaining the original intent: "${originalQuestion}"`
+              }
+            ],
+            model: DEFAULT_MODEL,
+            stream: false,
+            temperature: 0.7
+          })
         });
-        
-        const improvedPrompt = improvePromptResponse.choices[0]?.message?.content;
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const improvedPrompt = data.choices?.[0]?.message?.content;
         if (improvedPrompt) {
           // Step 2: Use the improved prompt to get a new answer
           onRelatedClick?.(improvedPrompt);

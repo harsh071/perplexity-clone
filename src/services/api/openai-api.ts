@@ -1,6 +1,5 @@
-import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { openai, DEFAULT_MODEL } from '../../config/api-config';
+import { DEFAULT_MODEL } from '../../config/api-config';
 import { ToolDefinition } from '../tools/tool-registry';
 
 export interface StreamHandlers {
@@ -18,12 +17,6 @@ export interface ChatCompletionOptions {
 }
 
 export class OpenAIAPI {
-  private client: OpenAI;
-
-  constructor(client = openai) {
-    this.client = client;
-  }
-
   /**
    * Create a chat completion with streaming support
    */
@@ -31,33 +24,65 @@ export class OpenAIAPI {
     messages: ChatCompletionMessageParam[],
     options: ChatCompletionOptions = {}
   ) {
-    const stream = await this.client.chat.completions.create({
-      messages,
-      model: options.model || DEFAULT_MODEL,
-      stream: true,
-      temperature: options.temperature,
-      max_tokens: options.maxTokens,
-      ...(options.tools && { tools: options.tools }),
-      ...(options.toolChoice && { tool_choice: options.toolChoice })
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages,
+        model: options.model || DEFAULT_MODEL,
+        stream: true,
+        temperature: options.temperature,
+        max_tokens: options.maxTokens,
+        ...(options.tools && { tools: options.tools }),
+        ...(options.toolChoice && { tool_choice: options.toolChoice })
+      })
     });
 
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.message || `API error: ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error('No response body');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
     let fullResponse = '';
     let toolCallResponse = '';
 
-    for await (const chunk of stream) {
-      // Handle regular content
-      const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
-        fullResponse += content;
-        options.handlers?.onToken?.(content);
-      }
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      // Handle tool calls
-      const toolCallChunk = chunk.choices[0]?.delta?.tool_calls?.[0]?.function?.arguments || '';
-      if (toolCallChunk) {
-        toolCallResponse += toolCallChunk;
-        options.handlers?.onToolCall?.(toolCallChunk);
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim());
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            const content = data.choices?.[0]?.delta?.content || '';
+            if (content) {
+              fullResponse += content;
+              options.handlers?.onToken?.(content);
+            }
+
+            const toolCallChunk = data.choices?.[0]?.delta?.tool_calls?.[0]?.function?.arguments || '';
+            if (toolCallChunk) {
+              toolCallResponse += toolCallChunk;
+              options.handlers?.onToolCall?.(toolCallChunk);
+            }
+          } catch (e) {
+            // Skip invalid JSON lines
+          }
+        }
       }
+    } finally {
+      reader.releaseLock();
     }
 
     return {
@@ -73,15 +98,28 @@ export class OpenAIAPI {
     messages: ChatCompletionMessageParam[],
     options: Omit<ChatCompletionOptions, 'handlers'> = {}
   ) {
-    const response = await this.client.chat.completions.create({
-      messages,
-      model: options.model || DEFAULT_MODEL,
-      temperature: options.temperature,
-      max_tokens: options.maxTokens,
-      ...(options.tools && { tools: options.tools }),
-      ...(options.toolChoice && { tool_choice: options.toolChoice })
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages,
+        model: options.model || DEFAULT_MODEL,
+        stream: false,
+        temperature: options.temperature,
+        max_tokens: options.maxTokens,
+        ...(options.tools && { tools: options.tools }),
+        ...(options.toolChoice && { tool_choice: options.toolChoice })
+      })
     });
 
-    return response.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
   }
 } 

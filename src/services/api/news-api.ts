@@ -1,5 +1,4 @@
 import { BaseAPIService } from './base-api';
-import { TAVILY_API_KEY, TAVILY_SEARCH_ENDPOINT } from '../../config/api-config';
 
 interface TavilyImage {
   url: string;
@@ -27,50 +26,18 @@ export interface NewsArticle {
 }
 
 export class NewsAPI extends BaseAPIService {
-  private apiKey: string;
-  private endpoint: string;
-
-  constructor(apiKey = TAVILY_API_KEY, endpoint = TAVILY_SEARCH_ENDPOINT) {
-    super();
-    this.apiKey = apiKey;
-    this.endpoint = endpoint;
-
-    if (!this.apiKey) {
-      console.warn('Tavily API key not found. News fetching will be disabled.');
-    }
-  }
-
   private async fetchNewsWithImages(category: string, searchType: 'latest' | 'top'): Promise<TavilyResponse> {
-    const searchQueries = {
-      latest: `latest breaking ${category} news today`,
-      top: `top trending ${category} news this week`
-    };
-
     return this.fetchWithErrorHandling<TavilyResponse>(
-      this.endpoint,
+      '/api/news',
       {
         method: 'POST',
-        headers: this.getAuthHeaders(this.apiKey),
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-          query: searchQueries[searchType],
-          search_depth: "advanced",
-          include_images: true,
-          include_image_descriptions: true,
-          include_answer: false,
-          max_results: 25,
-          filter: {
-            domain_types: ["news"],
-            time_period: searchType === 'latest' ? "last_day" : "last_week",
-            exclude_domains: [
-              "wikipedia.org", "reddit.com", "youtube.com", 
-              "facebook.com", "twitter.com", "instagram.com",
-              "tiktok.com", "pinterest.com"
-            ],
-            content_type: ["news"]
-          },
-          search_params: {
-            sort_by: searchType === 'latest' ? "date" : "relevance"
-          }
+          category,
+          searchType,
+          maxResults: 25
         })
       },
       'News API'
@@ -161,7 +128,6 @@ export class NewsAPI extends BaseAPIService {
     category: string,
     maxResults = 10
   ): Promise<NewsArticle[]> {
-    if (!this.apiKey) return [];
 
     try {
       // Fetch both latest and top news
