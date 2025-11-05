@@ -11,7 +11,7 @@ import { Message as MessageComponent } from './components/chat/message';
 import { ChatInput } from './components/chat/chat-input';
 import { Sidebar } from './components/sidebar';
 import { DiscoverPage } from './components/discover/discover-page';
-import { NewThreadDialog } from './components/new-thread-dialog';
+// Removed NewThreadDialog modal usage; New Thread now navigates Home directly
 
 // Store and utilities
 import { useSearchStore } from './store/search-store';
@@ -35,7 +35,6 @@ type Page = 'home' | 'discover';
 interface AppState {
   lastQuery: string;
   currentPage: Page;
-  isNewThreadOpen: boolean;
   currentThreadId: string | null;
   abortController: AbortController | null;
 }
@@ -69,7 +68,6 @@ function App() {
   const [state, setState] = useState<AppState>({
     lastQuery: '',
     currentPage: 'home',
-    isNewThreadOpen: false,
     currentThreadId: null,
     abortController: null
   });
@@ -440,14 +438,13 @@ function App() {
   };
 
   /**
-   * Opens the new thread dialog
+   * Starts a new thread by navigating Home and clearing messages (no modal)
    */
   const handleNewThread = () => {
     setState(prev => ({ 
-      ...prev, 
-      isNewThreadOpen: true,
+      ...prev,
       currentThreadId: null,
-      currentPage: 'home' // Ensure we're on home page for new thread
+      currentPage: 'home'
     }));
     useSearchStore.getState().clearMessages();
   };
@@ -511,6 +508,23 @@ function App() {
                   Ask anything. Get instant answers.
                 </p>
               </div>
+              <div className="flex items-center justify-end">
+                <button
+                  onClick={handleProModeToggle}
+                  aria-pressed={isProMode}
+                  aria-label={isProMode ? 'Disable Pro mode' : 'Enable Pro mode'}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-2.5 py-1 rounded-full transition-colors",
+                    isProMode ? "bg-perplexity-accent/10 text-perplexity-accent" : "bg-perplexity-card text-perplexity-muted hover:text-perplexity-text"
+                  )}
+                >
+                  <span className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    isProMode ? "bg-perplexity-accent" : "bg-gray-400"
+                  )} />
+                  <span className="text-xs font-medium">Pro mode: {isProMode ? 'On' : 'Off'}</span>
+                </button>
+              </div>
               <div className="transform transition-all duration-300 hover:scale-[1.02]">
                 <ChatInput 
                   onSubmit={handleSubmit} 
@@ -553,6 +567,23 @@ function App() {
             {/* Chat Input */}
             <div className="sticky bottom-0 bg-perplexity-bg border-t border-gray-200 p-4">
               <div className="max-w-3xl mx-auto">
+                <div className="mb-2 flex items-center justify-end">
+                  <button
+                    onClick={handleProModeToggle}
+                    aria-pressed={isProMode}
+                    aria-label={isProMode ? 'Disable Pro mode' : 'Enable Pro mode'}
+                    className={cn(
+                      "inline-flex items-center gap-2 px-2.5 py-1 rounded-full transition-colors",
+                      isProMode ? "bg-perplexity-accent/10 text-perplexity-accent" : "bg-perplexity-card text-perplexity-muted hover:text-perplexity-text"
+                    )}
+                  >
+                    <span className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      isProMode ? "bg-perplexity-accent" : "bg-gray-400"
+                    )} />
+                    <span className="text-xs font-medium">Pro mode: {isProMode ? 'On' : 'Off'}</span>
+                  </button>
+                </div>
                 <ChatInput 
                   onSubmit={handleSubmit} 
                   disabled={isLoading} 
@@ -601,16 +632,7 @@ function App() {
         </footer>
       </main>
 
-      {/* New Thread Dialog */}
-      <NewThreadDialog 
-        isOpen={state.isNewThreadOpen}
-        onClose={() => setState(prev => ({ 
-          ...prev, 
-          isNewThreadOpen: false,
-          currentPage: 'home' // Ensure we're on home page when closing
-        }))}
-        onSubmit={handleSubmit}
-      />
+      {/* Removed NewThreadDialog: New Thread now directly navigates Home */}
     </div>
   );
 }
