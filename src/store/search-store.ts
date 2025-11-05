@@ -6,6 +6,7 @@ interface SearchState {
   isLoading: boolean;
   isProMode: boolean;
   selectedLanguage: string;
+  isSidebarCollapsed: boolean;
   setMessages: (messages: Message[]) => void;
   addMessage: (message: Message) => void;
   updateLastMessage: (message: Message) => void;
@@ -13,6 +14,7 @@ interface SearchState {
   setLoading: (loading: boolean) => void;
   toggleProMode: () => void;
   setSelectedLanguage: (language: string) => void;
+  toggleSidebar: () => void;
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
@@ -20,6 +22,7 @@ export const useSearchStore = create<SearchState>((set) => ({
   isLoading: false,
   isProMode: false,
   selectedLanguage: 'en',
+  isSidebarCollapsed: false,
   setMessages: (messages) => set({ messages }),
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   updateLastMessage: (message) => set((state) => ({
@@ -28,5 +31,6 @@ export const useSearchStore = create<SearchState>((set) => ({
   clearMessages: () => set({ messages: [] }),
   setLoading: (loading) => set({ isLoading: loading }),
   toggleProMode: () => set((state) => ({ isProMode: !state.isProMode })),
-  setSelectedLanguage: (language) => set({ selectedLanguage: language })
+  setSelectedLanguage: (language) => set({ selectedLanguage: language }),
+  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed }))
 }));

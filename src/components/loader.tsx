@@ -5,31 +5,19 @@ interface LoaderProps {
   className?: string;
 }
 
-export const Loader = ({ size = 'md', className = '' }: LoaderProps) => {
+export const Loader = ({ size = 'sm', className = '' }: LoaderProps) => {
   const sizeClasses = {
     sm: {
-      outer: 'w-12 h-12',
-      middle: 'w-9 h-9',
-      container: 'w-6 h-6',
-      dot: 'w-1.5 h-1.5',
-      center: 'w-2 h-2',
-      radius: 9
+      width: 28,
+      height: 28,
     },
     md: {
-      outer: 'w-16 h-16',
-      middle: 'w-12 h-12',
-      container: 'w-8 h-8',
-      dot: 'w-2 h-2',
-      center: 'w-3 h-3',
-      radius: 12
+      width: 36,
+      height: 36,
     },
     lg: {
-      outer: 'w-24 h-24',
-      middle: 'w-18 h-18',
-      container: 'w-12 h-12',
-      dot: 'w-3 h-3',
-      center: 'w-4 h-4',
-      radius: 18
+      width: 48,
+      height: 48,
     }
   };
 
@@ -37,9 +25,33 @@ export const Loader = ({ size = 'md', className = '' }: LoaderProps) => {
 
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
-      {/* Outer pulsing circle */}
+      {/* Outer glow effect */}
       <motion.div
-        className={`absolute ${sizes.outer} rounded-full border-2 border-perplexity-accent/20`}
+        className="absolute rounded-full"
+        style={{
+          width: sizes.width + 16,
+          height: sizes.height + 16,
+          background: 'radial-gradient(circle, rgba(45, 139, 139, 0.3) 0%, transparent 70%)',
+        }}
+        animate={{
+          scale: [1, 1.5, 1],
+          opacity: [0.2, 0.5, 0.2],
+        }}
+        transition={{
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      
+      {/* Inner glow effect */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: sizes.width + 8,
+          height: sizes.height + 8,
+          background: 'radial-gradient(circle, rgba(45, 139, 139, 0.4) 0%, transparent 70%)',
+        }}
         animate={{
           scale: [1, 1.3, 1],
           opacity: [0.3, 0.6, 0.3],
@@ -48,74 +60,66 @@ export const Loader = ({ size = 'md', className = '' }: LoaderProps) => {
           duration: 2,
           repeat: Infinity,
           ease: "easeInOut",
+          delay: 0.2,
         }}
       />
-      
-      {/* Middle pulsing circle */}
+
+      {/* Main pulsing and rotating star */}
       <motion.div
-        className={`absolute ${sizes.middle} rounded-full border-2 border-perplexity-accent/40`}
         animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.5, 0.8, 0.5],
+          opacity: [0.85, 1, 0.85],
+          rotate: [0, 360],
         }}
         transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 0.3,
+          scale: {
+            duration: 1.8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+          opacity: {
+            duration: 1.8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+          rotate: {
+            duration: 5,
+            repeat: Infinity,
+            ease: "linear",
+          },
         }}
-      />
-      
-      {/* Rotating dots */}
-      <motion.div
-        className={`relative ${sizes.container}`}
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "linear",
+        className="relative z-10"
+        style={{
+          filter: 'drop-shadow(0 0 8px rgba(45, 139, 139, 0.6))',
         }}
       >
-        {[0, 1, 2, 3].map((index) => {
-          const angle = (index * 90) * (Math.PI / 180);
-          const x = Math.cos(angle) * sizes.radius;
-          const y = Math.sin(angle) * sizes.radius;
-          return (
-            <motion.div
-              key={index}
-              className={`absolute ${sizes.dot} rounded-full bg-perplexity-accent`}
-              style={{
-                top: '50%',
-                left: '50%',
-                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-              }}
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.6, 1, 0.6],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: index * 0.15,
-              }}
-            />
-          );
-        })}
+        <svg
+          width={sizes.width}
+          height={sizes.height}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g stroke="#2D8B8B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Central vertical line */}
+            <line x1="12" y1="4" x2="12" y2="20" />
+            {/* Top inverted V */}
+            <line x1="12" y1="4" x2="8" y2="8" />
+            <line x1="12" y1="4" x2="16" y2="8" />
+            {/* Horizontal arms (top) */}
+            <line x1="8" y1="8" x2="8" y2="12" />
+            <line x1="8" y1="12" x2="6" y2="12" />
+            <line x1="16" y1="8" x2="16" y2="12" />
+            <line x1="16" y1="12" x2="18" y2="12" />
+            {/* Bottom V */}
+            <line x1="12" y1="20" x2="8" y2="16" />
+            <line x1="12" y1="20" x2="16" y2="16" />
+            {/* Horizontal arms (bottom) */}
+            <line x1="8" y1="16" x2="8" y2="12" />
+            <line x1="16" y1="16" x2="16" y2="12" />
+          </g>
+        </svg>
       </motion.div>
-      
-      {/* Center dot */}
-      <motion.div
-        className={`absolute ${sizes.center} rounded-full bg-perplexity-accent`}
-        animate={{
-          scale: [1, 1.3, 1],
-        }}
-        transition={{
-          duration: 1,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
     </div>
   );
 };

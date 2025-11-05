@@ -14,7 +14,6 @@ import { ChatInput } from './components/chat/chat-input';
 import { Sidebar } from './components/sidebar';
 import { DiscoverPage } from './components/discover/discover-page';
 import { NewThreadDialog } from './components/new-thread-dialog';
-import { Loader } from './components/loader';
 
 // Store and utilities
 import { useSearchStore } from './store/search-store';
@@ -506,9 +505,6 @@ function App() {
           <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-b from-transparent to-perplexity-card/20">
             <div className="w-full max-w-2xl mx-auto space-y-8 px-4">
               <div className="space-y-4 text-center">
-                <div className="flex justify-center">
-                  <Loader size="lg" />
-                </div>
                 <h1 className="text-[40px] md:text-[56px] leading-[1.1] font-medium bg-gradient-to-br from-perplexity-text to-perplexity-accent bg-clip-text text-transparent">
                   Perplexed
                 </h1>
@@ -548,7 +544,7 @@ function App() {
                       exit={{ opacity: 0, y: -10 }}
                       className="flex justify-center items-center p-8"
                     >
-                      <Loader size="md" />
+                      <div className="w-2 h-2 rounded-full bg-perplexity-accent animate-pulse" />
                     </motion.div>
                   )}
                 </div>
@@ -588,7 +584,11 @@ function App() {
       {/* New Thread Dialog */}
       <NewThreadDialog 
         isOpen={state.isNewThreadOpen}
-        onClose={() => setState(prev => ({ ...prev, isNewThreadOpen: false }))}
+        onClose={() => setState(prev => ({ 
+          ...prev, 
+          isNewThreadOpen: false,
+          currentPage: 'home' // Ensure we're on home page when closing
+        }))}
         onSubmit={handleSubmit}
       />
     </div>
