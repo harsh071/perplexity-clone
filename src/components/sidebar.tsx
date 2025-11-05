@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Search, Plus, ChevronLeft, Globe, Clock, Trash2 } from 'lucide-react';
+import { Home, Search, Plus, ChevronLeft, Clock, Trash2 } from 'lucide-react';
 import { useSearchStore } from '../store/search-store';
 import { cn, getRecentThreads, clearRecentThreads } from '../lib/utils';
-import { motion } from 'framer-motion';
 import type { Message } from '../types/message';
+import { Loader } from './loader';
 
 type Page = 'home' | 'discover';
 
@@ -57,19 +57,7 @@ export function Sidebar({ currentPage, onPageChange, onNewThread }: SidebarProps
     )}>
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ 
-              rotate: 360,
-            }}
-            transition={{ 
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            className="text-perplexity-accent"
-          >
-            <Globe className="w-6 h-6" />
-          </motion.div>
+          <Loader size={isSidebarCollapsed ? "sm" : "sm"} />
           {!isSidebarCollapsed && (
             <span className="font-semibold text-perplexity-text">Perplexed</span>
           )}
