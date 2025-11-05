@@ -2,10 +2,10 @@
 
 A modern AI meta‑search and chat app with streaming answers, web citations, related questions, and an agentic “Pro mode”. Built with React + Vite, TailwindCSS, and TypeScript. Local API routes are served by Vite using Edge‑style handlers.
 
-<!-- Screenshots (put files in public/screenshots/) -->
-<img width="1511" alt="Perplexed — Pro mode answer" src="public/screenshots/pro-mode-answer.png" />
-<img width="1505" alt="Perplexed — Home" src="public/screenshots/home.png" />
-<img width="1509" alt="Perplexed — Discover News" src="public/screenshots/discover-news.png" />
+<!-- Screenshots -->
+<img width="1918" height="932" alt="Screenshot 2025-11-05 at 1 48 33 AM" src="https://github.com/user-attachments/assets/cf84739c-f82a-439b-811d-96459dfae56d" />
+<img width="439" height="912" alt="Screenshot 2025-11-05 at 1 46 30 AM" src="https://github.com/user-attachments/assets/e4b1f45d-520e-478b-bb1c-b1bba8ede8f5" />
+<img width="1919" height="929" alt="Screenshot 2025-11-05 at 1 48 07 AM" src="https://github.com/user-attachments/assets/a58ff2d9-7554-4f93-b307-b0de6960db8a" />
 
 ## ✨ Features
 
