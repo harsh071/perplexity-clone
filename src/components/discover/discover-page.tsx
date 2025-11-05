@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { 
   Newspaper, Briefcase, Globe, Microscope, Film, Gamepad, Heart, DollarSign, 
-  Loader2, FileText, Star, List, X, MapPin
+  Loader2, FileText, Star, List, X
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { serviceManager } from '../../services/service-manager';
 import type { NewsArticle } from '../../services/api/news-api';
+import { WeatherWidget } from './weather-widget';
+import { MarketOutlook } from './market-outlook';
 
 export const NEWS_CATEGORIES = [
   { id: 'general', label: 'General', icon: Newspaper },
@@ -157,7 +159,8 @@ export function DiscoverPage() {
   const currentArticles = (newsCache[selectedCategory] || []).slice(0, displayCount);
   const hasMore = newsCache[selectedCategory]?.length === displayCount;
   const featuredArticle = currentArticles[0];
-  const gridArticles = currentArticles.slice(1);
+  const relatedArticles = currentArticles.slice(1, 4); // Show only 3 related articles
+  const gridArticles = currentArticles.slice(4); // Rest of articles for grid
 
   const formatTimeAgo = (dateString?: string) => {
     if (!dateString) return 'Published recently';
@@ -234,17 +237,17 @@ export function DiscoverPage() {
             <>
               {/* Featured Article */}
               {featuredArticle && (
-                <div className="mb-8">
+                <div className="mb-6">
                   <a
                     href={featuredArticle.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all"
+                    className="group bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all block"
                   >
                     <div className="grid md:grid-cols-2 gap-6 p-6">
-                      <div className="flex-1">
+                      <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs text-perplexity-muted">
+                          <span className="text-xs text-gray-500">
                             {formatTimeAgo(featuredArticle.published_date)}
                           </span>
                         </div>
@@ -256,11 +259,11 @@ export function DiscoverPage() {
                         </p>
                         <div className="flex items-center gap-2 text-sm text-perplexity-muted">
                           <Newspaper className="w-4 h-4" />
-                          <span>52 sources</span>
+                          <span>30 sources</span>
                         </div>
                       </div>
                       {featuredArticle.imageUrl && (
-                        <div className="relative aspect-video md:aspect-auto md:h-full overflow-hidden rounded-lg bg-gray-100">
+                        <div className="relative w-full h-64 md:h-80 overflow-hidden rounded-lg bg-gray-100">
                           <img
                             src={featuredArticle.imageUrl}
                             alt={featuredArticle.imageDescription || featuredArticle.title}
@@ -270,6 +273,44 @@ export function DiscoverPage() {
                       )}
                     </div>
                   </a>
+                </div>
+              )}
+
+              {/* Related Articles (3 articles in a row) */}
+              {relatedArticles.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {relatedArticles.map((article: NewsArticle) => (
+                    <a
+                      key={article.url}
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100"
+                    >
+                      <div className="aspect-video w-full overflow-hidden bg-gray-100">
+                        {article.imageUrl ? (
+                          <img 
+                            src={article.imageUrl} 
+                            alt={article.imageDescription || article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Newspaper className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium text-perplexity-text group-hover:text-perplexity-accent mb-2 line-clamp-2">
+                          {article.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-perplexity-muted mt-3">
+                          <Newspaper className="w-3 h-3" />
+                          <span>{Math.floor(Math.random() * 20) + 30} sources</span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
                 </div>
               )}
 
@@ -358,6 +399,7 @@ export function DiscoverPage() {
                 <button
                   onClick={() => setShowMakeItYours(false)}
                   className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  aria-label="Close"
                 >
                   <X className="w-4 h-4 text-perplexity-muted" />
                 </button>
@@ -387,13 +429,11 @@ export function DiscoverPage() {
             </div>
           )}
 
-          {/* Location Widget */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-            <button className="w-full flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <MapPin className="w-4 h-4 text-perplexity-muted" />
-              <span className="text-sm text-perplexity-text">Use precise location</span>
-            </button>
-          </div>
+          {/* Weather Widget */}
+          <WeatherWidget />
+
+          {/* Market Outlook */}
+          <MarketOutlook />
 
         </div>
       </div>
