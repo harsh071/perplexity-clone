@@ -4,6 +4,7 @@ interface Source {
   url: string;
   snippet: string;
   author?: string;
+  imageUrl?: string;
 }
 
 interface AgentStep {

@@ -1,6 +1,10 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
+// import dotenv from 'dotenv';
+// // Load environment variables in preview
+// dotenv.config();
+
 // Vercel Edge Runtime declaration (enables Fetch API Request/Response signature)
 export const config = { runtime: 'edge' };
 

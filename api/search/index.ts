@@ -51,7 +51,7 @@ export default async function handler(req: Request): Promise<Response> {
       body: JSON.stringify({
         query,
         search_depth: search_depth || 'advanced',
-        include_images: include_images || false,
+        include_images: include_images ?? true,
         include_answer: include_answer || false,
         max_results: max_results || 5
       })

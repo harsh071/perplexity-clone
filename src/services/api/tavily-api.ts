@@ -21,7 +21,7 @@ export interface TavilySearchOptions {
 
 export const DEFAULT_SEARCH_OPTIONS: TavilySearchOptions = {
   search_depth: "advanced",
-  include_images: false,
+  include_images: true,
   include_answer: false,
   max_results: 5
 } as const;

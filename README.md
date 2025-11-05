@@ -1,9 +1,162 @@
-# 🛠️ Open-Source Perplexity Alternative
+# 🛠️ Perplexed — Open-Source Perplexity Alternative
 
-A modern, extensible framework for building AI applications with seamless tool and LLM integration.
-<img width="1511" alt="image" src="https://github.com/user-attachments/assets/15932897-a0f7-4f3b-bbfb-34b6d59399f5" />
-<img width="1505" alt="image" src="https://github.com/user-attachments/assets/02ac33de-77e2-4bc2-86f5-6cec04051a63" />
-<img width="1509" alt="image" src="https://github.com/user-attachments/assets/1f8e70f8-af0c-4967-98b5-bba1e31deb56" />
+A modern AI meta‑search and chat app with streaming answers, web citations, related questions, and an agentic “Pro mode”. Built with React + Vite, TailwindCSS, and TypeScript. Local API routes are served by Vite using Edge‑style handlers.
+
+<!-- Screenshots (put files in public/screenshots/) -->
+<img width="1511" alt="Perplexed — Pro mode answer" src="public/screenshots/pro-mode-answer.png" />
+<img width="1505" alt="Perplexed — Home" src="public/screenshots/home.png" />
+<img width="1509" alt="Perplexed — Discover News" src="public/screenshots/discover-news.png" />
+
+## ✨ Features
+
+- Streaming chat responses with markdown rendering and copyable code blocks
+- Web search context + source citations (Tavily)
+- Related questions tool to generate follow‑ups
+- Pro mode: agentic multi‑step flow with visible progress
+- Discover page with news and widgets
+- Recent threads, “New Thread”, language selector
+- Mock Mode for offline/demo usage and auto‑fallback when APIs fail
+- Optional Mixpanel analytics
+
+## 🚀 Quick Start
+
+1) Install dependencies
+```bash
+npm install
+```
+
+2) Create a .env file (project root)
+```bash
+# OpenAI (required for real completions)
+OPENAI_API_KEY=your_openai_key          # or VITE_OPENAI_API_KEY
+
+# Tavily (required for live web/news search)
+TAVILY_API_KEY=your_tavily_key          # or VITE_TAVILY_API_KEY
+
+# Analytics (optional)
+VITE_MIXED_PANEL_API_KEY=your_mixpanel_token
+
+# Flags
+VITE_USE_MOCK_MODE=true|false           # default false
+VITE_AUTO_FALLBACK_TO_MOCK=true|false   # default true
+```
+
+3) Run the app
+```bash
+npm run dev
+```
+
+Scripts: `npm run build`, `npm run preview`, `npm run lint`.
+
+## 🧪 Mock Mode (no keys required)
+
+To develop or demo without external services:
+```bash
+VITE_USE_MOCK_MODE=true
+```
+The app uses realistic mock responses (OpenAI + Tavily), including streaming and tool calls.
+
+Auto fallback (default true):
+```bash
+VITE_AUTO_FALLBACK_TO_MOCK=true
+```
+If a real API fails, mock data is used transparently.
+
+## 🗺️ How it Works
+
+### Standard mode
+1. Query triggers Tavily search → results formatted as context
+2. OpenAI chat completion streams tokens to the UI
+3. Sources are shown under the answer; related questions are generated via a tool
+
+### Pro mode (agentic)
+1. `AgentOrchestrator` plans steps and displays progress
+2. Performs research/tool usage as needed
+3. Consolidates findings into the final answer with sources and related questions
+
+Toggle Pro mode in the UI. The handler in `src/App.tsx` switches between the two flows.
+
+## 🔌 API Routes (Vite dev server)
+
+- POST `/api/chat` → OpenAI Chat Completions (stream/non‑stream, tool calls)
+  - Reads `OPENAI_API_KEY` or `VITE_OPENAI_API_KEY`
+- POST `/api/search` → Tavily web search
+- POST `/api/news` → Tavily news search (category + latest/top)
+
+These are Edge‑style handlers in `api/*/index.ts`, loaded by a Vite plugin in `vite.config.ts`.
+
+## 🧠 Services, Tools, and Agents
+
+- `src/services/api/openai-api.ts` — Streaming client that parses SSE JSON lines, aggregates tool call arguments, supports mock and auto‑fallback
+- `src/services/api/tavily-api.ts` — Web/news search client with sensible defaults and mock support
+- `src/services/llm-service.ts` — Helpers: `createChatCompletion`, `searchWeb`, `formatSearchContext`, related‑question prompts
+- `src/services/tools/*` — Tool registry and the related‑questions tool
+- `src/agents/*` — Agent implementations with `AgentOrchestrator` for Pro mode
+
+## 🧱 UI Overview
+
+- `src/App.tsx` — App shell, routes (Home/Discover), message flow, Pro toggle
+- `src/components/chat/message.tsx` —
+  - Renders agent steps (Pro mode)
+  - Shows sources (favicon, title, host, snippet)
+  - Markdown with copy buttons for code blocks
+  - Actions: Share, Rewrite (improve prompt via `/api/chat`), Copy
+- `src/components/chat/chat-input.tsx` — Input with Stop support
+- `src/components/sidebar.tsx` — Navigation, New Thread, Pro toggle
+- `src/components/discover/*` — Discover widgets and news
+- State via `src/store/search-store.ts`
+
+## 🔑 Environment Variables
+
+```bash
+# OpenAI
+OPENAI_API_KEY=...                # or VITE_OPENAI_API_KEY
+
+# Tavily
+TAVILY_API_KEY=...                # or VITE_TAVILY_API_KEY
+
+# Analytics (optional)
+VITE_MIXED_PANEL_API_KEY=...
+
+# Flags
+VITE_USE_MOCK_MODE=true|false
+VITE_AUTO_FALLBACK_TO_MOCK=true|false
+```
+
+Defaults are set in `src/config/api-config.ts`:
+- `DEFAULT_MODEL = gpt-4o-mini`
+- `UPDATE_INTERVAL = 50` ms between UI streaming updates
+- `ENABLE_ANALYTICS` derived from `VITE_MIXED_PANEL_API_KEY`
+
+## 🧭 Tech Stack
+
+- React 18, TypeScript, Vite
+- TailwindCSS (+ Typography)
+- Zustand state, framer‑motion, lucide‑react, react‑markdown
+
+## 🧰 Development
+
+- Lint: `npm run lint`
+- Build: `npm run build`
+- Preview: `npm run preview`
+
+## 🆘 Troubleshooting
+
+- Missing OpenAI key → set `OPENAI_API_KEY` or `VITE_OPENAI_API_KEY`
+- Missing Tavily key → set `TAVILY_API_KEY` or `VITE_TAVILY_API_KEY`
+- Want to run without keys → `VITE_USE_MOCK_MODE=true`
+- Streaming not updating → check Network `/api/chat` for SSE and console for errors
+
+## 📸 Screenshots
+
+Add these files to render the images above:
+- `public/screenshots/pro-mode-answer.png`
+- `public/screenshots/home.png`
+- `public/screenshots/discover-news.png`
+
+## 📄 License
+
+MIT License © 2024
 
 ## 🚀 Quick Start
 

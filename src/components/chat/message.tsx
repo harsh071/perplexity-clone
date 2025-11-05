@@ -3,7 +3,7 @@ import { Share, RotateCcw, Copy, MoreHorizontal, Plus, Loader2, StopCircle } fro
 import { cn } from '../../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Message as MessageType, Source } from '../../types/message';
+import type { Source } from '../../types/message';
 import { DEFAULT_MODEL } from '../../config/api-config';
 
 interface MessageProps {
@@ -28,7 +28,7 @@ function isValidUrl(urlString: string): boolean {
   try {
     new URL(urlString);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -278,7 +278,11 @@ export function Message({
                       className="flex-shrink-0 w-[280px] flex items-start gap-2 p-2 rounded-xl bg-perplexity-card/50 hover:bg-perplexity-card transition-colors"
                     >
                       <div className="w-5 h-5 mt-0.5 flex-shrink-0">
-                        <img src={`https://www.google.com/s2/favicons?domain=${source.url}&sz=128`} className="w-full h-full rounded" />
+                        <img 
+                          src={source.imageUrl || `https://www.google.com/s2/favicons?domain=${source.url}&sz=128`}
+                          alt={source.title}
+                          className="w-full h-full rounded object-cover"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-col gap-0.5 mb-1">
@@ -300,7 +304,11 @@ export function Message({
                       className="flex items-start gap-3 p-3 rounded-xl bg-perplexity-card/50 hover:bg-perplexity-card transition-colors"
                     >
                       <div className="w-6 h-6 mt-0.5 flex-shrink-0">
-                        <img src={`https://www.google.com/s2/favicons?domain=${source.url}&sz=128`} className="w-full h-full rounded" />
+                        <img 
+                          src={source.imageUrl || `https://www.google.com/s2/favicons?domain=${source.url}&sz=128`}
+                          alt={source.title}
+                          className="w-full h-full rounded object-cover"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-col gap-1 mb-1">
@@ -330,7 +338,7 @@ export function Message({
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]}
               components={{
-                a: ({ node, ...props }) => (
+                a: (props) => (
                   <a 
                     {...props} 
                     className="text-perplexity-accent hover:underline font-normal" 
@@ -338,9 +346,8 @@ export function Message({
                     rel="noopener noreferrer"
                   />
                 ),
-                code: ({ node, inline, className, children, ...props }: any) => {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const codeText = Array.isArray(children) ? children.join('') : children;
+                code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) => {
+                  const codeText = Array.isArray(children) ? children.join('') : (children as string | null | undefined);
                   
                   if (inline) {
                     return (
@@ -355,7 +362,7 @@ export function Message({
 
                   const handleCopyCode = async () => {
                     try {
-                      await navigator.clipboard.writeText(codeText);
+                      await navigator.clipboard.writeText(codeText || '');
                       const button = document.activeElement as HTMLButtonElement;
                       if (button) {
                         button.innerText = "Copied!";
@@ -388,19 +395,19 @@ export function Message({
                     </div>
                   );
                 },
-                p: ({ node, ...props }) => (
+                p: (props) => (
                   <p 
                     {...props} 
                     className="text-[15px] md:text-[17px] font-normal leading-[1.6] tracking-[-0.01em] mb-3" 
                   />
                 ),
-                ul: ({ node, ...props }) => (
+                ul: (props) => (
                   <ul {...props} className="list-disc pl-4 space-y-1 text-[15px] md:text-[17px] mb-3" />
                 ),
-                h2: ({ node, ...props }) => (
+                h2: (props) => (
                   <h2 {...props} className="text-[17px] md:text-[19px] font-medium tracking-[-0.01em] mb-2 mt-6 first:mt-0" />
                 ),
-                h3: ({ node, ...props }) => (
+                h3: (props) => (
                   <h3 {...props} className="text-[15px] md:text-[17px] font-medium tracking-[-0.01em] mb-1 mt-4" />
                 ),
               }}

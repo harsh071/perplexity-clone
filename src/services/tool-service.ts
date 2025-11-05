@@ -96,7 +96,7 @@ export interface WebSearchOptions {
 
 export const DEFAULT_SEARCH_OPTIONS: WebSearchOptions = {
   search_depth: "advanced",
-  include_images: false,
+  include_images: true,
   include_answer: false,
   max_results: 5
 } as const;
@@ -118,6 +118,7 @@ export interface TavilySearchResult {
   score: number;
   published_date?: string;
   author?: string;
+  image_url?: string;
 }
 
 export interface SearchSource {

@@ -202,11 +202,12 @@ function App() {
         updateLastMessage({
           type: 'assistant',
           content: result.answer,
-          sources: (result.sources || []).map((s: { title: string; url: string; snippet?: string }) => ({
+          sources: (result.sources || []).map((s: { title: string; url: string; snippet?: string; imageUrl?: string }) => ({
             id: s.url,
             title: s.title,
             url: s.url,
-            snippet: s.snippet || ''
+            snippet: s.snippet || '',
+            imageUrl: s.imageUrl
           })),
           related: relatedQuestions,
           steps: result.steps
@@ -289,7 +290,8 @@ function App() {
                         id: result.url,
                         title: result.title,
                         url: result.url,
-                        snippet: result.snippet
+                        snippet: result.snippet,
+                        imageUrl: (result as any).image_url
                       })),
                       related: relatedQuestions,
                       steps: [],
@@ -345,7 +347,8 @@ function App() {
             id: result.url,
             title: result.title,
             url: result.url,
-            snippet: result.snippet
+            snippet: result.snippet,
+            imageUrl: (result as any).image_url
           })),
           related: relatedQuestions,
           steps: []
@@ -368,7 +371,8 @@ function App() {
               id: result.url,
               title: result.title,
               url: result.url,
-              snippet: result.snippet
+              snippet: result.snippet,
+              imageUrl: (result as any).image_url
             })),
             related: relatedQuestions,
             steps: []

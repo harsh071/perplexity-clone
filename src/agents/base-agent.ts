@@ -138,9 +138,11 @@ export class BaseAgent {
       }
       
       if (!Array.isArray(parsedResponse.sources)) {
-        parsedResponse.sources = searchResults.map(result => ({
+        parsedResponse.sources = searchResults.map((result: any) => ({
           title: result.title,
-          url: result.url
+          url: result.url,
+          snippet: result.snippet,
+          imageUrl: result.image_url
         }));
       }
       
@@ -154,9 +156,11 @@ export class BaseAgent {
       // Return a fallback response
       return {
         answer: response.content, // Use the raw response as the answer
-        sources: searchResults.map(result => ({
+        sources: searchResults.map((result: any) => ({
           title: result.title,
-          url: result.url
+          url: result.url,
+          snippet: result.snippet,
+          imageUrl: result.image_url
         })),
         confidence: 0.7
       };
