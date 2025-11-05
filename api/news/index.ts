@@ -1,10 +1,17 @@
-import dotenv from 'dotenv';
+// Vercel Edge Runtime declaration (enables Fetch API Request/Response signature)
+export const config = { runtime: 'edge' };
 
-// Load environment variables
-dotenv.config();
-
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+// Check for both TAVILY_API_KEY and VITE_TAVILY_API_KEY (support both naming conventions)
+const TAVILY_API_KEY = process.env.TAVILY_API_KEY || process.env.VITE_TAVILY_API_KEY;
 const TAVILY_SEARCH_ENDPOINT = 'https://api.tavily.com/search';
+
+// Log API key status (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('Tavily API Key Status (News):', TAVILY_API_KEY ? 'SET' : 'NOT SET');
+  if (!TAVILY_API_KEY) {
+    console.warn('⚠️  TAVILY_API_KEY not found. Please set either TAVILY_API_KEY or VITE_TAVILY_API_KEY in your .env file');
+  }
+}
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
@@ -15,7 +22,10 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   if (!TAVILY_API_KEY) {
-    return new Response(JSON.stringify({ error: 'Tavily API key not configured' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Tavily API key not configured',
+      message: 'Please set TAVILY_API_KEY or VITE_TAVILY_API_KEY in your .env file. See README.md for setup instructions.'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

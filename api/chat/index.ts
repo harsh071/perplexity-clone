@@ -1,17 +1,18 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Vercel Edge Runtime declaration (enables Fetch API Request/Response signature)
+export const config = { runtime: 'edge' };
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// Check for both OPENAI_API_KEY and VITE_OPENAI_API_KEY (support both naming conventions)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
 const DEFAULT_MODEL = process.env.DEFAULT_MODEL || 'gpt-4o-mini';
 
-console.log('API Chat handler loaded. OPENAI_API_KEY:', OPENAI_API_KEY ? 'SET' : 'NOT SET');
-
-if (!OPENAI_API_KEY) {
-  console.warn('OPENAI_API_KEY is not set in environment variables.');
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Chat handler loaded. OPENAI_API_KEY:', OPENAI_API_KEY ? 'SET' : 'NOT SET');
+  if (!OPENAI_API_KEY) {
+    console.warn('⚠️  OPENAI_API_KEY not found. Please set either OPENAI_API_KEY or VITE_OPENAI_API_KEY in your .env file');
+  }
 }
 
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
@@ -25,7 +26,10 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   if (!openai) {
-    return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+    return new Response(JSON.stringify({ 
+      error: 'OpenAI API key not configured',
+      message: 'Please set OPENAI_API_KEY or VITE_OPENAI_API_KEY in your .env file. See README.md for setup instructions.'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
