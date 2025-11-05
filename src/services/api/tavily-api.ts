@@ -1,4 +1,6 @@
 import { BaseAPIService } from './base-api';
+import { USE_MOCK_MODE } from '../../config/api-config';
+import { MockService } from '../mocks/mock-service';
 
 export interface TavilySearchResult {
   title: string;
@@ -32,6 +34,12 @@ export class TavilyAPI extends BaseAPIService {
     query: string,
     options: TavilySearchOptions = DEFAULT_SEARCH_OPTIONS
   ): Promise<TavilySearchResult[]> {
+    if (USE_MOCK_MODE) {
+      console.log('[Mock Mode] Using mock Tavily API');
+      const mockService = MockService.getInstance();
+      return mockService.searchWeb(query, options.max_results || 5);
+    }
+
     try {
       const data = await this.fetchWithErrorHandling<{ results: TavilySearchResult[] }>(
         '/api/search',

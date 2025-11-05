@@ -24,4 +24,14 @@ export const UPDATE_INTERVAL = 50; // ms between UI updates
 
 // Feature Flags
 export const ENABLE_WEB_SEARCH = true; // Always enabled, handled by server
-export const ENABLE_ANALYTICS = Boolean(MIXPANEL_TOKEN); 
+export const ENABLE_ANALYTICS = Boolean(MIXPANEL_TOKEN);
+
+// Mock Mode - Enable to use mock services instead of real APIs
+// Set VITE_USE_MOCK_MODE=true in your .env file to enable mock mode
+export const USE_MOCK_MODE = import.meta.env.VITE_USE_MOCK_MODE === 'true' || import.meta.env.VITE_USE_MOCK_MODE === '1';
+
+// Log mock mode status
+if (USE_MOCK_MODE) {
+  console.log('%c🎭 Mock Mode Enabled', 'color: #10b981; font-weight: bold; font-size: 14px;');
+  console.log('All API calls will use mock data. No API keys required.');
+} 

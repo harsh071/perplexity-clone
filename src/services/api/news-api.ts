@@ -1,4 +1,6 @@
 import { BaseAPIService } from './base-api';
+import { USE_MOCK_MODE } from '../../config/api-config';
+import { MockService } from '../mocks/mock-service';
 
 interface TavilyImage {
   url: string;
@@ -128,6 +130,11 @@ export class NewsAPI extends BaseAPIService {
     category: string,
     maxResults = 10
   ): Promise<NewsArticle[]> {
+    if (USE_MOCK_MODE) {
+      console.log('[Mock Mode] Using mock News API');
+      const mockService = MockService.getInstance();
+      return mockService.getNewsByCategory(category, maxResults);
+    }
 
     try {
       // Fetch both latest and top news

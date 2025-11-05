@@ -1,12 +1,19 @@
-import { DEFAULT_MODEL } from '../config/api-config';
+import { DEFAULT_MODEL, USE_MOCK_MODE } from '../config/api-config';
 import { SYSTEM_PROMPTS, USER_PROMPTS } from '../config/prompts';
 import { TOOLS, type WebSearchOptions, type TavilySearchResult, DEFAULT_SEARCH_OPTIONS } from './tool-service';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { MockService } from './mocks/mock-service';
 
 /**
  * Determines whether a web search is necessary for a given query
  */
 export async function shouldPerformWebSearch(query: string, language: string = 'en'): Promise<boolean> {
+  if (USE_MOCK_MODE) {
+    // In mock mode, always search for queries that seem to need it
+    const needsSearchKeywords = ['what', 'how', 'when', 'where', 'why', 'latest', 'news', 'current', 'recent'];
+    return needsSearchKeywords.some(keyword => query.toLowerCase().includes(keyword));
+  }
+
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -57,6 +64,12 @@ export async function searchWeb(
     return [];
   }
 
+  if (USE_MOCK_MODE) {
+    console.log('[Mock Mode] Using mock web search');
+    const mockService = MockService.getInstance();
+    return mockService.searchWeb(query, options.max_results || 5);
+  }
+
   try {
     const response = await fetch('/api/search', {
       method: 'POST',
@@ -103,6 +116,16 @@ export async function createChatCompletion(
     handlers?: StreamHandlers
   } = {}
 ) {
+  if (USE_MOCK_MODE) {
+    console.log('[Mock Mode] Using mock chat completion');
+    const mockService = MockService.getInstance();
+    return mockService.createChatCompletion(messages, {
+      tools: options.tools,
+      toolChoice: options.toolChoice,
+      handlers: options.handlers
+    });
+  }
+
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {

@@ -1,6 +1,7 @@
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { DEFAULT_MODEL } from '../../config/api-config';
+import { DEFAULT_MODEL, USE_MOCK_MODE } from '../../config/api-config';
 import { ToolDefinition } from '../tools/tool-registry';
+import { MockService } from '../mocks/mock-service';
 
 export interface StreamHandlers {
   onToken?: (token: string) => void;
@@ -24,6 +25,16 @@ export class OpenAIAPI {
     messages: ChatCompletionMessageParam[],
     options: ChatCompletionOptions = {}
   ) {
+    if (USE_MOCK_MODE) {
+      console.log('[Mock Mode] Using mock OpenAI API');
+      const mockService = MockService.getInstance();
+      return mockService.createChatCompletion(messages, {
+        tools: options.tools,
+        toolChoice: options.toolChoice,
+        handlers: options.handlers
+      });
+    }
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -98,6 +109,13 @@ export class OpenAIAPI {
     messages: ChatCompletionMessageParam[],
     options: Omit<ChatCompletionOptions, 'handlers'> = {}
   ) {
+    if (USE_MOCK_MODE) {
+      console.log('[Mock Mode] Using mock OpenAI API (simple)');
+      const mockService = MockService.getInstance();
+      const result = await mockService.createSimpleChatCompletion(messages);
+      return result;
+    }
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {

@@ -1,6 +1,8 @@
 import type { AgentConfig, AgentContext, AgentResult, AgentStep } from '../types/agent';
 import { createChatCompletion } from '../services/llm-service';
 import { searchWeb, formatSearchContext } from '../services/llm-service';
+import { USE_MOCK_MODE } from '../config/api-config';
+import { MockService } from '../services/mocks/mock-service';
 
 export class BaseAgent {
   protected config: AgentConfig;
@@ -11,6 +13,11 @@ export class BaseAgent {
   }
 
   protected async plan(query: string, language: string): Promise<AgentResult> {
+    if (USE_MOCK_MODE) {
+      const mockService = MockService.getInstance();
+      return mockService.planAgent(query, language);
+    }
+
     const systemPrompt = this.config.systemPrompt(language);
     const response = await createChatCompletion([
       { 
@@ -70,6 +77,11 @@ export class BaseAgent {
   }
 
   protected async search(query: string, plan: AgentResult, language: string): Promise<any[]> {
+    if (USE_MOCK_MODE) {
+      const mockService = MockService.getInstance();
+      return mockService.searchAgent(query, plan, language);
+    }
+
     const searchResults = [];
     
     // Generate search query based on plan
@@ -94,6 +106,11 @@ export class BaseAgent {
     searchResults: any[],
     language: string
   ): Promise<AgentResult> {
+    if (USE_MOCK_MODE) {
+      const mockService = MockService.getInstance();
+      return mockService.consolidateAgent(query, plan, searchResults, language);
+    }
+
     const searchContext = formatSearchContext(searchResults);
     
     const response = await createChatCompletion([

@@ -22,6 +22,64 @@ VITE_TAVILY_API_KEY=your_tavily_key
 npm run dev
 ```
 
+## 🎭 Mock Mode (Testing Without API Keys)
+
+You can test the application **without any API keys** by enabling Mock Mode. This is perfect for:
+- Testing the UI and user experience
+- Demonstrating the app without API costs
+- Development when API keys are not available
+- Offline development
+
+### Enable Mock Mode
+
+Add this to your `.env` file:
+```bash
+VITE_USE_MOCK_MODE=true
+```
+
+Or set it to `1`:
+```bash
+VITE_USE_MOCK_MODE=1
+```
+
+### What Mock Mode Provides
+
+When Mock Mode is enabled, the app uses realistic mock data instead of making real API calls:
+
+- **Chat Completions**: Generates contextual responses based on your queries
+- **Web Search**: Returns mock search results with realistic data
+- **News API**: Provides mock news articles for all categories
+- **Agent Orchestration**: Simulates the full agent workflow
+- **Streaming**: Simulates token-by-token streaming responses
+- **Related Questions**: Generates relevant follow-up questions
+
+### Mock Mode Features
+
+- ✅ **No API keys required** - Works completely offline
+- ✅ **Realistic responses** - Context-aware mock responses based on query type
+- ✅ **Streaming simulation** - Simulates real-time token streaming
+- ✅ **Full functionality** - All features work as expected
+- ✅ **Fast responses** - No network delays, instant responses
+- ✅ **Console logging** - See `[Mock Mode]` logs in the console
+
+### Example Usage
+
+1. Create `.env` file:
+```bash
+VITE_USE_MOCK_MODE=true
+```
+
+2. Start the app:
+```bash
+npm run dev
+```
+
+3. Ask any question - it will work with mock data!
+
+### Disabling Mock Mode
+
+Simply remove `VITE_USE_MOCK_MODE` from your `.env` file or set it to `false`, and the app will use real APIs (requires API keys).
+
 ## 📚 Adding New Tools
 
 Adding a new tool is easy! Here's a step-by-step guide:

@@ -5,7 +5,7 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 import { cn } from './lib/utils';
 import type { Message, Source, AgentStep } from './types/message';
 import mixpanel from 'mixpanel-browser';
-import { ENABLE_ANALYTICS } from './config/api-config';
+import { ENABLE_ANALYTICS, USE_MOCK_MODE } from './config/api-config';
 import { SYSTEM_PROMPTS } from './config/prompts';
 
 // Components
@@ -568,10 +568,16 @@ function App() {
         {/* Footer */}
         <footer className="hidden md:block border-t border-gray-200 py-4 px-6">
           <div className="flex items-center justify-between text-sm text-perplexity-muted">
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <a href="#" className="hover:text-perplexity-text">Pro</a>
               <a href="#" className="hover:text-perplexity-text">Enterprise</a>
               <a href="#" className="hover:text-perplexity-text">Blog</a>
+              {USE_MOCK_MODE && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  Mock Mode
+                </span>
+              )}
             </div>
             <div className="flex gap-4">
               <a href="#" className="hover:text-perplexity-text">English</a>
