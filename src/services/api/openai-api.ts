@@ -1,5 +1,5 @@
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { DEFAULT_MODEL, USE_MOCK_MODE } from '../../config/api-config';
+import { DEFAULT_MODEL, USE_MOCK_MODE, AUTO_FALLBACK_TO_MOCK } from '../../config/api-config';
 import { ToolDefinition } from '../tools/tool-registry';
 import { MockService } from '../mocks/mock-service';
 
@@ -35,7 +35,8 @@ export class OpenAIAPI {
       });
     }
 
-    const response = await fetch('/api/chat', {
+    try {
+      const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -49,57 +50,69 @@ export class OpenAIAPI {
         ...(options.tools && { tools: options.tools }),
         ...(options.toolChoice && { tool_choice: options.toolChoice })
       })
-    });
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.message || `API error: ${response.status}`);
-    }
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.message || `API error: ${response.status}`);
+      }
 
-    if (!response.body) {
-      throw new Error('No response body');
-    }
+      if (!response.body) {
+        throw new Error('No response body');
+      }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
-    let toolCallResponse = '';
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+      let toolCallResponse = '';
 
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim());
 
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
-            const content = data.choices?.[0]?.delta?.content || '';
-            if (content) {
-              fullResponse += content;
-              options.handlers?.onToken?.(content);
+          for (const line of lines) {
+            try {
+              const data = JSON.parse(line);
+              const content = data.choices?.[0]?.delta?.content || '';
+              if (content) {
+                fullResponse += content;
+                options.handlers?.onToken?.(content);
+              }
+
+              const toolCallChunk = data.choices?.[0]?.delta?.tool_calls?.[0]?.function?.arguments || '';
+              if (toolCallChunk) {
+                toolCallResponse += toolCallChunk;
+                options.handlers?.onToolCall?.(toolCallChunk);
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
             }
-
-            const toolCallChunk = data.choices?.[0]?.delta?.tool_calls?.[0]?.function?.arguments || '';
-            if (toolCallChunk) {
-              toolCallResponse += toolCallChunk;
-              options.handlers?.onToolCall?.(toolCallChunk);
-            }
-          } catch (e) {
-            // Skip invalid JSON lines
           }
         }
+      } finally {
+        reader.releaseLock();
       }
-    } finally {
-      reader.releaseLock();
-    }
 
-    return {
-      content: fullResponse,
-      toolCallResponse
-    };
+      return {
+        content: fullResponse,
+        toolCallResponse
+      };
+    } catch (err) {
+      if (AUTO_FALLBACK_TO_MOCK) {
+        console.warn('[Auto Mock Fallback] OpenAI API failed. Using mock response.', err);
+        const mockService = MockService.getInstance();
+        return mockService.createChatCompletion(messages, {
+          tools: options.tools,
+          toolChoice: options.toolChoice,
+          handlers: options.handlers
+        });
+      }
+      throw err;
+    }
   }
 
   /**
@@ -116,7 +129,8 @@ export class OpenAIAPI {
       return result;
     }
 
-    const response = await fetch('/api/chat', {
+    try {
+      const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -130,14 +144,22 @@ export class OpenAIAPI {
         ...(options.tools && { tools: options.tools }),
         ...(options.toolChoice && { tool_choice: options.toolChoice })
       })
-    });
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.message || `API error: ${response.status}`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.message || `API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || '';
+    } catch (err) {
+      if (AUTO_FALLBACK_TO_MOCK) {
+        console.warn('[Auto Mock Fallback] OpenAI API (simple) failed. Using mock response.', err);
+        const mockService = MockService.getInstance();
+        return mockService.createSimpleChatCompletion(messages);
+      }
+      throw err;
     }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || '';
   }
 } 

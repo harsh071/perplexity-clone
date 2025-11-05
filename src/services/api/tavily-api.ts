@@ -1,5 +1,5 @@
 import { BaseAPIService } from './base-api';
-import { USE_MOCK_MODE } from '../../config/api-config';
+import { USE_MOCK_MODE, AUTO_FALLBACK_TO_MOCK } from '../../config/api-config';
 import { MockService } from '../mocks/mock-service';
 
 export interface TavilySearchResult {
@@ -59,6 +59,11 @@ export class TavilyAPI extends BaseAPIService {
       return data.results || [];
     } catch (error) {
       console.error('Error searching web:', error);
+      if (AUTO_FALLBACK_TO_MOCK) {
+        console.warn('[Auto Mock Fallback] Tavily search failed. Using mock results.', error);
+        const mockService = MockService.getInstance();
+        return mockService.searchWeb(query, options.max_results || 5);
+      }
       return [];
     }
   }

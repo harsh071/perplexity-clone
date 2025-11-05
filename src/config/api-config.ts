@@ -30,6 +30,14 @@ export const ENABLE_ANALYTICS = Boolean(MIXPANEL_TOKEN);
 // Set VITE_USE_MOCK_MODE=true in your .env file to enable mock mode
 export const USE_MOCK_MODE = import.meta.env.VITE_USE_MOCK_MODE === 'true' || import.meta.env.VITE_USE_MOCK_MODE === '1';
 
+// Auto Fallback - Transparently use mock data when real APIs fail in prod
+// Enabled by default (set VITE_AUTO_FALLBACK_TO_MOCK=false to disable)
+export const AUTO_FALLBACK_TO_MOCK = (
+  import.meta.env.VITE_AUTO_FALLBACK_TO_MOCK === undefined ||
+  import.meta.env.VITE_AUTO_FALLBACK_TO_MOCK === 'true' ||
+  import.meta.env.VITE_AUTO_FALLBACK_TO_MOCK === '1'
+);
+
 // Log mock mode status
 if (USE_MOCK_MODE) {
   console.log('%c🎭 Mock Mode Enabled', 'color: #10b981; font-weight: bold; font-size: 14px;');

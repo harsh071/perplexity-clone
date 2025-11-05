@@ -1,5 +1,5 @@
 import { BaseAPIService } from './base-api';
-import { USE_MOCK_MODE } from '../../config/api-config';
+import { USE_MOCK_MODE, AUTO_FALLBACK_TO_MOCK } from '../../config/api-config';
 import { MockService } from '../mocks/mock-service';
 
 interface TavilyImage {
@@ -173,6 +173,11 @@ export class NewsAPI extends BaseAPIService {
       return articles.slice(0, maxResults);
     } catch (error) {
       console.error('Error fetching news:', error);
+      if (AUTO_FALLBACK_TO_MOCK) {
+        console.warn('[Auto Mock Fallback] News API failed. Using mock articles.', error);
+        const mockService = MockService.getInstance();
+        return mockService.getNewsByCategory(category, maxResults);
+      }
       return [];
     }
   }

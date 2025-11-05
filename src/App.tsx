@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { Sparkles } from 'lucide-react';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { cn } from './lib/utils';
-import type { Message, Source, AgentStep } from './types/message';
+import type {} from './types/message';
 import mixpanel from 'mixpanel-browser';
 import { ENABLE_ANALYTICS, USE_MOCK_MODE } from './config/api-config';
 import { SYSTEM_PROMPTS } from './config/prompts';
@@ -26,10 +24,8 @@ import {
   searchWeb, 
   formatSearchContext,
   createChatCompletion,
-  createMainChatMessages,
   createRelatedQuestionsMessages
 } from './services/llm-service';
-import type { SearchSource } from './services/tool-service';
 
 // Agents
 import { AgentOrchestrator } from './agents/agent-orchestrator';
@@ -208,7 +204,12 @@ function App() {
         updateLastMessage({
           type: 'assistant',
           content: result.answer,
-          sources: result.sources,
+          sources: (result.sources || []).map((s: { title: string; url: string; snippet?: string }) => ({
+            id: s.url,
+            title: s.title,
+            url: s.url,
+            snippet: s.snippet || ''
+          })),
           related: relatedQuestions,
           steps: result.steps
         });
@@ -233,8 +234,8 @@ function App() {
         });
 
         // Use standard processing with streaming
-        let searchResults = await searchWeb(content);
-        let searchContext = searchResults.length > 0 ? formatSearchContext(searchResults) : '';
+        const searchResults = await searchWeb(content);
+        const searchContext = searchResults.length > 0 ? formatSearchContext(searchResults) : '';
 
         // Prepare conversation history with language context
         const conversationHistory = messages.slice(0, -1).map(msg => ({
@@ -244,11 +245,7 @@ function App() {
             : msg.content
         }));
 
-        // Add language instruction to system message
-        const systemMessage = {
-          role: 'system' as const,
-          content: `You are a helpful assistant. IMPORTANT: You must respond in ${language}. This is a strict requirement - all your responses should be in ${language} only. ${searchContext ? "Use the search results provided to enhance your responses, and always cite your sources when using information from them." : ""}`
-        };
+        // Note: System message is inlined directly in the completion call below
 
         // Start both streams in parallel
         let lastUpdateTime = Date.now();
@@ -262,8 +259,8 @@ function App() {
         ];
 
         // Process main response and related questions in parallel
-        const [mainResponse, relatedResponse] = await Promise.all([
-          // Main chat completion with streaming
+        const parallelResults = await Promise.all([
+          // Main chat completion with streaming (ignore returned value; we stream updates)
           createChatCompletion(
             [
               { 
@@ -305,7 +302,7 @@ function App() {
                 }
               }
             }
-          ),
+          ).then(() => undefined),
 
           // Related questions completion with stronger language instruction
           createChatCompletion(
@@ -327,6 +324,8 @@ function App() {
             }
           )
         ]);
+
+        const relatedResponse = parallelResults[1];
 
         // Process related questions response
         try {
@@ -578,6 +577,21 @@ function App() {
                   Mock Mode
                 </span>
               )}
+              <button
+                onClick={handleProModeToggle}
+                aria-pressed={isProMode}
+                aria-label={isProMode ? 'Disable Pro mode' : 'Enable Pro mode'}
+                className={cn(
+                  "inline-flex items-center gap-2 px-2.5 py-1 rounded-full transition-colors",
+                  isProMode ? "bg-perplexity-accent/10 text-perplexity-accent" : "bg-perplexity-card text-perplexity-muted hover:text-perplexity-text"
+                )}
+              >
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  isProMode ? "bg-perplexity-accent" : "bg-gray-400"
+                )} />
+                <span className="text-xs font-medium">Pro mode: {isProMode ? 'On' : 'Off'}</span>
+              </button>
             </div>
             <div className="flex gap-4">
               <a href="#" className="hover:text-perplexity-text">English</a>
